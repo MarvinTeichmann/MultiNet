@@ -1,0 +1,12 @@
+[submodule "submodules/TensorDetect"]
+	path = submodules/TensorDetect
+	url = git@github.com:MarvinTeichmann/TensorDetect.git
+[submodule "submodules/KittiSeg"]
+	path = submodules/KittiSeg
+	url = git@github.com:MarvinTeichmann/KittiSeg.git
+[submodule "submodules/TensorVision"]
+	path = submodules/TensorVision
+	url = git@github.com:TensorVision/TensorVision.git
+[submodule "submodules/tensorflow-fcn"]
+	path = submodules/tensorflow-fcn
+	url = git@github.com:MarvinTeichmann/tensorflow-fcn.git

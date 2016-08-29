@@ -1,0 +1,14 @@
+"models" :{
+    "segmentation" : "../submodules/KittiSeg/hypes/kitti_fcn.json"
+    "detection" : "../submodules/TensorDetect/hypes/kitti.json"
+}
+
+"path": ["../incl", "../submodules/KittiSeg/incl", "../submodules/TensorDetect/incl/"],
+
+"logging": {
+    "display_iter": 200,
+    "eval_iter": 1000,
+    "write_iter": 800,
+    "save_iter": 2000,
+    "image_iter": 10000
+},
