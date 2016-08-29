@@ -38,6 +38,8 @@ import tensorvision.core as core
 
 import time
 
+import random
+
 flags.DEFINE_string('name', None,
                     'Append a name Tag to run.')
 
@@ -61,10 +63,10 @@ def _print_training_status(hypes, step, loss_values, start_time, lr):
     sec_per_batch = float(duration)
 
     if len(loss_values.keys()) == 2:
-        info_str = ('Step {step}/{total_steps}: losses = ( {loss_value1:.2f}, '
-                    '{loss_value2:.2f} );'
-                    ' lr = ( {lr_value1:.2e}, {lr_value2:.2e} ); '
-                    '( {sec_per_batch:.3f} sec )')
+        info_str = ('Step {step}/{total_steps}: losses = ({loss_value1:.2f}, '
+                    '{loss_value2:.2f});'
+                    ' lr = ({lr_value1:.2e}, {lr_value2:.2e}); '
+                    '({sec_per_batch:.3f} sec)')
         losses = loss_values.values()
         lrs = lr.values()
         logging.info(info_str.format(step=step,
@@ -116,12 +118,24 @@ def run_united_training(meta_hypes, subhypes, submodules, subgraph, tv_sess,
         eval_names[model] = names
         eval_ops[model] = ops
 
+    weights = meta_hypes['selection']['weights']
+    aweights = np.array([sum(weights[:i+1]) for i in range(len(weights))])
     # eval_names, eval_ops = zip(*tv_graph['eval_list'])
     # Run the training Step
     start_time = time.time()
     for step in xrange(start_step, meta_hypes['solver']['max_steps']):
 
-        model = models[step % num_models]
+        if not meta_hypes['selection']['random']:
+            if not meta_hypes['selection']['use_weights']:
+                model = models[step % num_models]
+            else:
+                select = np.argmax((aweights > step % aweights[-1]))
+                model = models[select]
+        else:
+            r = random.random()
+            select = np.argmax((aweights > r))
+            model = models[select]
+
         lr = solvers[model].get_learning_rate(subhypes[model], step)
         feed_dict = {subgraph[model]['learning_rate']: lr}
 
@@ -263,9 +277,9 @@ def build_united_model(meta_hypes):
         hypes = subhypes[model]
         utils.set_dirs(hypes, subhypes_file)
         hypes['dirs']['output_dir'] = meta_hypes['dirs']['output_dir']
-        meta_hypes['dirs']['image_dir'] = hypes['dirs']['image_dir']
         train.initialize_training_folder(hypes, files_dir=model,
                                          logging=first_iter)
+        meta_hypes['dirs']['image_dir'] = hypes['dirs']['image_dir']
         train.maybe_download_and_extract(hypes)
         submodules[model] = utils.load_modules_from_hypes(
             hypes, postfix="_%s" % model)

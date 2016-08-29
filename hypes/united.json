@@ -4,20 +4,26 @@
         "detection" : "../submodules/TensorDetect/hypes/kitti.json"
     },
 
-    "model_list" = ["segmentation", "detection"],
+    "model_list": ["segmentation", "detection"],
 
     "path": ["../incl", "../submodules/KittiSeg/incl", "../submodules/TensorDetect/incl/"],
 
     "logging": {
-        "display_iter": 2,
-        "eval_iter": 10,
+        "display_iter": 200,
+        "eval_iter": 1000,
         "write_iter": 800,
-        "save_iter": 10,
-        "image_iter": 10
+        "save_iter": 10000,
+        "image_iter": 600000
+    },
+
+    "selection": {
+        "random": true,
+        "use_weights": true,
+        "weights": [0.5, 0.5]
     },
 
     "solver": {
-        "max_steps": 200000,
+        "max_steps": 180000,
         "batch_size": 1
     }
 }
