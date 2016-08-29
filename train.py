@@ -49,42 +49,76 @@ tf.app.flags.DEFINE_boolean(
                    'hence it will get overwritten by further runs.'))
 
 
-def create_united_model(hypes):
+def create_united_model(meta_hypes):
 
     logging.info("Initialize training folder")
 
     subhypes = {}
     subgraph = {}
     submodules = {}
+    subqueues = {}
 
-    base_path = hypes['dirs']['base_path']
+    base_path = meta_hypes['dirs']['base_path']
     first_iter = True
 
-    for model in hypes['models']:
-        subhypes_file = os.path.join(base_path, hypes['models'][model])
+    for model in meta_hypes['models']:
+        subhypes_file = os.path.join(base_path, meta_hypes['models'][model])
         with open(subhypes_file, 'r') as f:
             logging.info("f: %s", f)
             subhypes[model] = json.load(f)
-        subh = subhypes[model]
-        utils.set_dirs(subh, subhypes_file)
-        subh['dirs']['output_dir'] = hypes['dirs']['output_dir']
-        train.initialize_training_folder(subh, files_dir=model,
+        hypes = subhypes[model]
+        utils.set_dirs(hypes, subhypes_file)
+        hypes['dirs']['output_dir'] = hypes['dirs']['output_dir']
+        train.initialize_training_folder(hypes, files_dir=model,
                                          logging=first_iter)
-        train.maybe_download_and_extract(subh)
-        submodules[model] = utils.load_modules_from_hypes(subh)
+        train.maybe_download_and_extract(hypes)
+        submodules[model] = utils.load_modules_from_hypes(
+            hypes, postfix="_%s" % model)
         modules = submodules[model]
 
         logging.info("Build %s computation Graph.")
-        with tf.name_scope("Queues"):
-            queue = modules['input'].create_queues(subh, 'train')
+        with tf.name_scope("Queues_%s" % model):
+            subqueues[model] = modules['input'].create_queues(hypes, 'train')
 
-        reuse = {True: False, False: None}[first_iter]
-        with tf.variable_scope(model, reuse=reuse):
-            subgraph[model] = core.build_training_graph(subh, queue, modules)
+        logging.info('Building Model: %s' % model)
+
+        reuse = {True: False, False: True}[first_iter]
+        with tf.variable_scope("", reuse=reuse):
+            subgraph[model] = core.build_training_graph(hypes,
+                                                        subqueues[model],
+                                                        modules)
 
         first_iter = False
-        logging.info("Start training")
-        logging.info("Finished training")
+
+    tv_sess = core.start_tv_session(hypes)
+    sess = tv_sess['sess']
+    for model in meta_hypes['models']:
+        hypes = subhypes[model]
+        modules = submodules[model]
+
+        with tf.name_scope('Validation_%s' % model):
+            tf.get_variable_scope().reuse_variables()
+            image_pl = tf.placeholder(tf.float32)
+            image = tf.expand_dims(image_pl, 0)
+            inf_out = core.build_inference_graph(hypes, modules,
+                                                 image=image)
+            subgraph[model]['image_pl'] = image_pl
+            subgraph[model]['inf_out'] = inf_out
+
+        # Start the data load
+        modules['input'].start_enqueuing_threads(hypes, subqueues[model],
+                                                 'train', sess)
+
+    my_loss = subgraph['segmentation']['losses']['total_loss']
+    my_loss2 = subgraph['detection']['losses']['total_loss']
+    seg_train = subgraph['segmentation']['train_op']
+    dec_train = subgraph['detection']['train_op']
+
+    logging.info("Start training")
+    logging.info("Finished training")
+    # stopping input Threads
+    tv_sess['coord'].request_stop()
+    tv_sess['coord'].join(tv_sess['threads'])
 
 
 def main(_):
