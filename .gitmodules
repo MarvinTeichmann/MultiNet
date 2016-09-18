@@ -10,3 +10,6 @@
 [submodule "submodules/tensorflow-fcn"]
 	path = submodules/tensorflow-fcn
 	url = git@github.com:MarvinTeichmann/tensorflow-fcn.git
+[submodule "submodules/road_classification"]
+	path = submodules/road_classification
+	url = git@github.com:MarvinTeichmann/road_classification.git
