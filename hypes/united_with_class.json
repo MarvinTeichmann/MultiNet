@@ -1,12 +1,13 @@
 {
     "models": {
         "segmentation" : "../submodules/KittiSeg/hypes/kitti_fcn.json",
-        "detection" : "../submodules/TensorDetect/hypes/kitti.json"
+        "detection" : "../submodules/TensorDetect/hypes/kitti.json",
+        "road" : "../submodules/road_classification/hypes/road.json"
     },
 
-    "model_list": ["segmentation", "detection"],
+    "model_list": ["segmentation", "detection", "road"],
 
-    "path": ["../incl", "../submodules/KittiSeg/incl", "../submodules/TensorDetect/incl/"],
+    "path": ["../incl", "../submodules/KittiSeg/incl", "../submodules/TensorDetect/incl/", "../submodules/road_classification/incl/"],
 
     "logging": {
         "display_iter": 200,
@@ -19,16 +20,16 @@
     "selection": {
         "random": false,
         "use_weights": true,
-        "weights": [1, 0]
+        "weights": [1, 2, 0]
     },
 
     "loss_build": {
         "recombine": true,
-        "weighted": true,
-        "rwdecay": false,
+        "weighted": false,
+        "rwdecay": true,
         "reweight": false,
         "rdweight": [0.5],
-        "weights": [0.7, 2]
+        "weights": [0.7, 2, 0.7]
     },
 
     "solver": {
