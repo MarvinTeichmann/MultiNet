@@ -1,0 +1,44 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""Trains, evaluates and saves the TensorDetect model."""
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
+import json
+import logging
+import os
+import sys
+
+import scipy as scp
+import scipy.misc
+
+import numpy as np
+
+from PIL import Image, ImageDraw, ImageFont
+
+image = scp.misc.imread("image.png")
+im = Image.fromarray(image.astype('uint8'))
+draw = ImageDraw.Draw(im)
+
+fnt = ImageFont.truetype('FreeMono/FreeMonoBold.ttf', 40)
+
+shape = image.shape
+
+if False:
+    draw.text((65, 10), "Highway / Primary",
+              font=fnt, fill=(255, 255, 0, 255))
+
+    draw.ellipse([10, 10, 55, 55], fill=(255, 255, 0, 255),
+                 outline=(255, 255, 0, 255))
+else:
+    draw.text((65, 10), "small Road",
+              font=fnt, fill=(255, 0, 0, 255))
+
+    draw.ellipse([10, 10, 55, 55], fill=(255, 0, 0, 255),
+                 outline=(255, 0, 0, 255))
+
+im.show()
+
+image = np.array(im).astype('float32')

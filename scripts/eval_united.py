@@ -363,7 +363,7 @@ def _recombine_2_losses(meta_hypes, subgraph, subhypes, submodules):
                 detection_loss = w[0]*weight_loss + detection_loss
             subgraph['detection']['losses']['total_loss'] = detection_loss
         else:
-            total_loss = segmentation_loss + detection_loss + weight_loss
+            total_loss = segmentation_loss + detection_loss
             subgraph['segmentation']['losses']['total_loss'] = total_loss
             detection_loss = detection_loss + weight_loss
             subgraph['detection']['losses']['total_loss'] = detection_loss

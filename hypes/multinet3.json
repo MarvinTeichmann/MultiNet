@@ -26,7 +26,7 @@
     "loss_build": {
         "recombine": true,
         "weighted": false,
-        "rwdecay": true,
+        "rwdecay": false,
         "fc_loss": false,
         "reweight": false,
         "reAdam": false,
