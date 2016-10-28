@@ -114,7 +114,8 @@ def build_training_graph(hypes, queue, modules, first_iter):
 
     reuse = {True: False, False: True}[first_iter]
 
-    with tf.variable_scope("", reuse=reuse):
+    scope = tf.get_variable_scope()
+    with tf.variable_scope(scope, reuse=reuse):
 
         learning_rate = tf.placeholder(tf.float32)
 
@@ -168,7 +169,7 @@ def run_united_training(meta_hypes, subhypes, submodules, subgraph, tv_sess,
     summary_writer = tv_sess['writer']
 
     solvers = {}
-    for model in meta_hypes['models']:
+    for model in meta_hypes['model_list']:
         solvers[model] = submodules[model]['solver']
 
     display_iter = meta_hypes['logging']['display_iter']
@@ -346,7 +347,20 @@ def run_united_training(meta_hypes, subhypes, submodules, subgraph, tv_sess,
 
 def _recombine_2_losses(meta_hypes, subgraph, subhypes, submodules):
     if meta_hypes['loss_build']['recombine']:
-        weight_loss = subgraph['segmentation']['losses']['weight_loss']
+        enc_loss = tf.add_n(tf.get_collection('losses'), name='total_loss')
+        dec_loss = tf.add_n(tf.get_collection('dec_losses'), name='total_loss')
+        fc_loss = tf.add_n(tf.get_collection('fc_wlosses'), name='total_loss')
+
+        # Computing weight loss
+        enc_loss = tf.add_n(tf.get_collection('losses'), name='total_loss')
+        dec_loss = tf.add_n(tf.get_collection('dec_losses'), name='total_loss')
+        fc_loss = tf.add_n(tf.get_collection('fc_wlosses'), name='total_loss')
+
+        if meta_hypes['loss_build']['fc_loss']:
+            weight_loss = enc_loss + dec_loss + fc_loss
+        else:
+            weight_loss = enc_loss + dec_loss
+
         segmentation_loss = subgraph['segmentation']['losses']['xentropy']
         detection_loss = subgraph['detection']['losses']['loss']
         if meta_hypes['loss_build']['weighted']:
@@ -368,7 +382,7 @@ def _recombine_2_losses(meta_hypes, subgraph, subhypes, submodules):
             detection_loss = detection_loss + weight_loss
             subgraph['detection']['losses']['total_loss'] = detection_loss
 
-        for model in meta_hypes['models']:
+        for model in meta_hypes['model_list']:
             hypes = subhypes[model]
             modules = submodules[model]
             optimizer = modules['solver']
@@ -381,16 +395,20 @@ def _recombine_2_losses(meta_hypes, subgraph, subhypes, submodules):
 
 def _recombine_3_losses(meta_hypes, subgraph, subhypes, submodules):
     if meta_hypes['loss_build']['recombine']:
+
+        # Computing weight loss
         enc_loss = tf.add_n(tf.get_collection('losses'), name='total_loss')
         dec_loss = tf.add_n(tf.get_collection('dec_losses'), name='total_loss')
         fc_loss = tf.add_n(tf.get_collection('fc_wlosses'), name='total_loss')
-        segmentation_loss = subgraph['segmentation']['losses']['xentropy']
-        detection_loss = subgraph['detection']['losses']['loss']
 
         if meta_hypes['loss_build']['fc_loss']:
             weight_loss = enc_loss + dec_loss + fc_loss
         else:
             weight_loss = enc_loss + dec_loss
+
+        segmentation_loss = subgraph['segmentation']['losses']['xentropy']
+        detection_loss = subgraph['detection']['losses']['loss']
+
         road_loss = subgraph['road']['losses']['loss']
 
         subgraph['segmentation']['losses']['total_loss'] = \
@@ -400,7 +418,7 @@ def _recombine_3_losses(meta_hypes, subgraph, subhypes, submodules):
             subgraph['detection']['losses']['total_loss'] = \
                 detection_loss + weight_loss
 
-        for model in meta_hypes['models']:
+        for model in meta_hypes['model_list']:
             hypes = subhypes[model]
             modules = submodules[model]
             optimizer = modules['solver']
@@ -430,7 +448,7 @@ def load_united_model(logdir):
     first_iter = True
 
     meta_hypes = utils.load_hypes_from_logdir(logdir, subdir="")
-    for model in meta_hypes['models']:
+    for model in meta_hypes['model_list']:
         subhypes[model] = utils.load_hypes_from_logdir(logdir, subdir=model)
         hypes = subhypes[model]
         hypes['dirs']['output_dir'] = meta_hypes['dirs']['output_dir']
@@ -464,7 +482,7 @@ def load_united_model(logdir):
     saver = tv_sess['saver']
 
     cur_step = core.load_weights(logdir, sess, saver)
-    for model in meta_hypes['models']:
+    for model in meta_hypes['model_list']:
         hypes = subhypes[model]
         modules = submodules[model]
         optimizer = modules['solver']
@@ -501,7 +519,7 @@ def build_united_model(meta_hypes):
     base_path = meta_hypes['dirs']['base_path']
     first_iter = True
 
-    for model in meta_hypes['models']:
+    for model in meta_hypes['model_list']:
         subhypes_file = os.path.join(base_path, meta_hypes['models'][model])
         with open(subhypes_file, 'r') as f:
             logging.info("f: %s", f)
@@ -538,7 +556,7 @@ def build_united_model(meta_hypes):
 
     tv_sess = core.start_tv_session(hypes)
     sess = tv_sess['sess']
-    for model in meta_hypes['models']:
+    for model in meta_hypes['model_list']:
         hypes = subhypes[model]
         modules = submodules[model]
         optimizer = modules['solver']
