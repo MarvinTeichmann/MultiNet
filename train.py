@@ -591,6 +591,8 @@ def main(_):
         utils.create_filewrite_handler(logging_file, mode='a')
         hypes, subhypes, submodules, subgraph, tv_sess, start_step = \
             load_united_model(logdir)
+        if start_step is None:
+            start_step = 0
 
     # Run united training
     run_united_training(hypes, subhypes, submodules, subgraph,
