@@ -36,6 +36,8 @@ import tensorvision.train as train
 import tensorvision.utils as utils
 import tensorvision.core as core
 
+import tensorflow_fcn
+
 import time
 
 import random
@@ -114,7 +116,9 @@ def build_training_graph(hypes, queue, modules, first_iter):
 
     reuse = {True: False, False: True}[first_iter]
 
-    with tf.variable_scope("", reuse=reuse):
+    scope = tf.get_variable_scope()
+
+    with tf.variable_scope(scope, reuse=reuse):
 
         learning_rate = tf.placeholder(tf.float32)
 
