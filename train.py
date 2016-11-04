@@ -51,7 +51,7 @@ flags.DEFINE_string('project', None,
 flags.DEFINE_string('logdir', None,
                     'Append a name Tag to run.')
 
-flags.DEFINE_string('hypes', 'hypes/united.json',
+flags.DEFINE_string('hypes', 'hypes/multinet2.json',
                     'File storing model parameters.')
 
 tf.app.flags.DEFINE_boolean(
