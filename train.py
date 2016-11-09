@@ -350,7 +350,16 @@ def run_united_training(meta_hypes, subhypes, submodules, subgraph, tv_sess,
 
 def _recombine_2_losses(meta_hypes, subgraph, subhypes, submodules):
     if meta_hypes['loss_build']['recombine']:
-        weight_loss = subgraph['segmentation']['losses']['weight_loss']
+        # Computing weight loss
+        enc_loss = tf.add_n(tf.get_collection('losses'), name='total_loss')
+        dec_loss = tf.add_n(tf.get_collection('dec_losses'), name='total_loss')
+        fc_loss = tf.add_n(tf.get_collection('fc_wlosses'), name='total_loss')
+
+        if meta_hypes['loss_build']['fc_loss']:
+            weight_loss = enc_loss + dec_loss + fc_loss
+        else:
+            weight_loss = enc_loss + dec_loss
+
         segmentation_loss = subgraph['segmentation']['losses']['xentropy']
         detection_loss = subgraph['detection']['losses']['loss']
         if meta_hypes['loss_build']['weighted']:
@@ -372,7 +381,7 @@ def _recombine_2_losses(meta_hypes, subgraph, subhypes, submodules):
             detection_loss = detection_loss + weight_loss
             subgraph['detection']['losses']['total_loss'] = detection_loss
 
-        for model in meta_hypes['models']:
+        for model in meta_hypes['model_list']:
             hypes = subhypes[model]
             modules = submodules[model]
             optimizer = modules['solver']
