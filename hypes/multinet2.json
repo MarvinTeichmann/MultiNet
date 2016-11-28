@@ -26,6 +26,7 @@
         "recombine": true,
         "weighted": false,
         "rwdecay": false,
+        "fc_loss": false,
         "reweight": false,
         "rdweight": [0.5],
         "weights": [0.7, 2]
