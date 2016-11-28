@@ -42,16 +42,11 @@ import tensorvision.utils as utils
 import tensorvision.core as core
 from PIL import Image, ImageDraw, ImageFont
 
-my_logdir = ('/home/mifs/mttt2/local_disk/rsync/Backup/'
-             'RUNS/paper/multinet3')
-data_file = "/scratch/marvin/DATA/data_road/testing.txt"
+flags.DEFINE_string('data',
+                    "data_road/testing.txt",
+                    'Text file containing images.')
 
 res_folder = 'results'
-
-output_folder = os.path.join(my_logdir, res_folder)
-
-if not os.path.exists(output_folder):
-    os.mkdir(output_folder)
 
 
 def _output_generator(sess, tensor_list, image_pl, data_file,
@@ -165,7 +160,7 @@ def road_draw(image, highway):
     return np.array(im).astype('float32')
 
 
-def run_eval(load_out):
+def run_eval(load_out, output_folder, data_file):
     meta_hypes, subhypes, submodules, decoded_logits, sess, image_pl = load_out
     assert(len(meta_hypes['model_list']) == 3)
     # inf_out['pred_boxes_new'], inf_out['pred_confidences']
@@ -177,6 +172,9 @@ def run_eval(load_out):
 
     def my_process(image):
         return process_image(subhypes, image)
+
+    eval_runtime(sess, subhypes, image_pl, eval_list, data_file)
+    exit(0)
 
     test_constant_input(subhypes)
     test_segmentation_input(subhypes)
@@ -284,17 +282,40 @@ def load_united_model(logdir):
 def main(_):
     utils.set_gpus_to_use()
 
-    logdir = my_logdir
+    logdir = FLAGS.logdir
+    data_file = FLAGS.data
+
+    if logdir is None:
+        logging.error('Usage python predict_joint --logdir /path/to/logdir'
+                      '--data /path/to/data/txt')
+        exit(1)
+
+    output_folder = os.path.join(logdir, res_folder)
+
+    if not os.path.exists(output_folder):
+        os.mkdir(output_folder)
+
+    logdir = logdir
     utils.load_plugins()
+
+    if 'TV_DIR_DATA' in os.environ:
+        data_file = os.path.join(os.environ['TV_DIR_DATA'], data_file)
+    else:
+        data_file = os.path.join('DATA', data_file)
+
+    if not os.path.exists(data_file):
+        logging.error('Please provide a valid data_file.')
+        logging.error('Use --data_file')
+        exit(1)
 
     if 'TV_DIR_RUNS' in os.environ:
         os.environ['TV_DIR_RUNS'] = os.path.join(os.environ['TV_DIR_RUNS'],
                                                  'UnitedVision2')
-    logging_file = os.path.join(logdir, "analysis.log")
+    logging_file = os.path.join(output_folder, "analysis.log")
     utils.create_filewrite_handler(logging_file, mode='a')
     load_out = load_united_model(logdir)
 
-    run_eval(load_out)
+    run_eval(load_out, output_folder, data_file)
 
     # stopping input Threads
 
