@@ -46,6 +46,10 @@ flags.DEFINE_string('data',
                     "data_road/testing.txt",
                     'Text file containing images.')
 
+flags.DEFINE_bool('speed_test',
+                  False,
+                  'Only measure inference speed.')
+
 res_folder = 'results'
 
 
@@ -173,8 +177,9 @@ def run_eval(load_out, output_folder, data_file):
     def my_process(image):
         return process_image(subhypes, image)
 
-    eval_runtime(sess, subhypes, image_pl, eval_list, data_file)
-    exit(0)
+    if FLAGS.speed_test:
+        eval_runtime(sess, subhypes, image_pl, eval_list, data_file)
+        exit(0)
 
     test_constant_input(subhypes)
     test_segmentation_input(subhypes)
