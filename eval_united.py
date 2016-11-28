@@ -41,12 +41,11 @@ import tensorvision.train as train
 import tensorvision.utils as utils
 import tensorvision.core as core
 
-my_logdir = ('/u/marvin/no_backup/RUNS/UnitedVision2/final_test/'
-             'deep_road_united_with_class_2016_09_22_11.29')
+my_logdir = ('/home/mifs/mttt2/local_disk/RUNS/UnitedVision2/'
+             'new_code_test/road_no_fcn_multinet3_2016_11_06_21.02')
+data_file = "/scratch/marvin/DATA/data_road/testing.txt"
 
-data_file = "/u/marvin/no_backup/DATA/data_road/testing.txt"
-
-output_folder = "/u/marvin/no_backup/results"
+output_folder = "/home/mifs/mttt2/local_disk/RUNS/results"
 run_folder = 'tracking'
 
 output_folder = os.path.join(output_folder, run_folder)
@@ -168,7 +167,9 @@ def load_united_model(logdir):
         with tf.name_scope('Validation_%s' % model):
             reuse = {True: False, False: True}[first_iter]
 
-            with tf.variable_scope("", reuse=reuse):
+            scope = tf.get_variable_scope()
+
+            with tf.variable_scope(scope, reuse=reuse):
                 logits = modules['arch'].inference(hypes, image, train=False)
 
             decoded_logits[model] = modules['objective'].decoder(hypes, logits,
