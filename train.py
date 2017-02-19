@@ -149,7 +149,7 @@ def build_training_graph(hypes, queue, modules, first_iter):
         eval_list = objective.evaluation(
             hypes, image, labels, decoded_logits, losses, global_step)
 
-        summary_op = tf.merge_all_summaries()
+        summary_op = tf.summary.merge_all()
 
     graph = {}
     graph['losses'] = losses
@@ -589,7 +589,7 @@ def main(_):
 
     if 'TV_DIR_RUNS' in os.environ:
         os.environ['TV_DIR_RUNS'] = os.path.join(os.environ['TV_DIR_RUNS'],
-                                                 'UnitedVision2')
+                                                 'MultiNet')
 
     if not load_weights:
         utils.set_dirs(hypes, tf.app.flags.FLAGS.hypes)

@@ -1,15 +1,15 @@
-[submodule "submodules/TensorDetect"]
-	path = submodules/TensorDetect
-	url = git@github.com:MarvinTeichmann/TensorDetect.git
 [submodule "submodules/KittiSeg"]
 	path = submodules/KittiSeg
-	url = git@github.com:MarvinTeichmann/KittiSeg.git
-[submodule "submodules/TensorVision"]
-	path = submodules/TensorVision
-	url = git@github.com:TensorVision/TensorVision.git
+	url = https://github.com/MarvinTeichmann/KittiSeg.git
+[submodule "submodules/KittiBox"]
+	path = submodules/KittiBox
+	url = https://github.com/MarvinTeichmann/KittiBox.git
+[submodule "submodules/KittiClass"]
+	path = submodules/KittiClass
+	url = https://github.com/MarvinTeichmann/KittiClass
 [submodule "submodules/tensorflow-fcn"]
 	path = submodules/tensorflow-fcn
-	url = git@github.com:MarvinTeichmann/tensorflow-fcn.git
-[submodule "submodules/road_classification"]
-	path = submodules/road_classification
-	url = git@github.com:MarvinTeichmann/road_classification.git
+	url = https://github.com/MarvinTeichmann/tensorflow-fcn
+[submodule "submodules/TensorVision"]
+	path = submodules/TensorVision
+	url = https://github.com/TensorVision/TensorVision.git

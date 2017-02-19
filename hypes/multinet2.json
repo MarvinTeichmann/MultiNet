@@ -1,12 +1,12 @@
 {
     "models": {
-        "segmentation" : "../submodules/KittiSeg/hypes/kitti_fcn.json",
-        "detection" : "../submodules/TensorDetect/hypes/kitti.json"
+        "segmentation" : "../submodules/KittiSeg/hypes/KittiSeg.json",
+        "detection" : "../submodules/KittiBox/hypes/kittiBox.json"
     },
 
     "model_list": ["segmentation", "detection"],
 
-    "path": ["../incl", "../submodules/KittiSeg/incl", "../submodules/TensorDetect/incl/"],
+    "path": ["../incl", "../submodules/KittiSeg/incl", "..submodules/KittiBox/incl/"],
 
     "logging": {
         "display_iter": 200,
