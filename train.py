@@ -187,8 +187,8 @@ def run_united_training(meta_hypes, subhypes, submodules, subgraph, tv_sess,
     py_smoothers = {}
     dict_smoothers = {}
     for model in models:
-        py_smoothers[model] = train.ExpoSmoother(0.95)
-        dict_smoothers[model] = train.MedianSmoother(0.50)
+        py_smoothers[model] = train.MedianSmoother(40)
+        dict_smoothers[model] = train.MedianSmoother(40)
 
     n = 0
 
@@ -227,6 +227,7 @@ def run_united_training(meta_hypes, subhypes, submodules, subgraph, tv_sess,
         feed_dict = {subgraph[model]['learning_rate']: lr}
 
         sess.run([subgraph[model]['train_op']], feed_dict=feed_dict)
+
 
         # Write the summaries and print an overview fairly often.
         if step % display_iter == 0:
@@ -351,35 +352,18 @@ def run_united_training(meta_hypes, subhypes, submodules, subgraph, tv_sess,
 def _recombine_2_losses(meta_hypes, subgraph, subhypes, submodules):
     if meta_hypes['loss_build']['recombine']:
         # Computing weight loss
-        enc_loss = tf.add_n(tf.get_collection('losses'), name='total_loss')
-        dec_loss = tf.add_n(tf.get_collection('dec_losses'), name='total_loss')
-        fc_loss = tf.add_n(tf.get_collection('fc_wlosses'), name='total_loss')
-
-        if meta_hypes['loss_build']['fc_loss']:
-            weight_loss = enc_loss + dec_loss + fc_loss
-        else:
-            weight_loss = enc_loss + dec_loss
-
+        weight_loss = subgraph['segmentation']['losses']['weight_loss']
         segmentation_loss = subgraph['segmentation']['losses']['xentropy']
         detection_loss = subgraph['detection']['losses']['loss']
+
         if meta_hypes['loss_build']['weighted']:
             w = meta_hypes['loss_build']['weights']
             total_loss = segmentation_loss*w[0] + \
                 detection_loss*w[1] + weight_loss
             subgraph['segmentation']['losses']['total_loss'] = total_loss
-            subgraph['detection']['losses']['total_loss'] = total_loss
-        elif meta_hypes['loss_build']['rwdecay']:
-            total_loss = segmentation_loss + detection_loss + weight_loss
-            subgraph['segmentation']['losses']['total_loss'] = total_loss
-            if meta_hypes['loss_build']['reweight']:
-                w = meta_hypes['loss_build']["rdweight"]
-                detection_loss = w[0]*weight_loss + detection_loss
-            subgraph['detection']['losses']['total_loss'] = detection_loss
         else:
             total_loss = segmentation_loss + detection_loss + weight_loss
             subgraph['segmentation']['losses']['total_loss'] = total_loss
-            detection_loss = detection_loss + weight_loss
-            subgraph['detection']['losses']['total_loss'] = detection_loss
 
         for model in meta_hypes['model_list']:
             hypes = subhypes[model]
@@ -394,25 +378,24 @@ def _recombine_2_losses(meta_hypes, subgraph, subhypes, submodules):
 
 def _recombine_3_losses(meta_hypes, subgraph, subhypes, submodules):
     if meta_hypes['loss_build']['recombine']:
-        enc_loss = tf.add_n(tf.get_collection('losses'), name='total_loss')
-        dec_loss = tf.add_n(tf.get_collection('dec_losses'), name='total_loss')
-        fc_loss = tf.add_n(tf.get_collection('fc_wlosses'), name='total_loss')
+        # Read all losses
+        weight_loss = subgraph['segmentation']['losses']['weight_loss']
         segmentation_loss = subgraph['segmentation']['losses']['xentropy']
         detection_loss = subgraph['detection']['losses']['loss']
-
-        if meta_hypes['loss_build']['fc_loss']:
-            weight_loss = enc_loss + dec_loss + fc_loss
-        else:
-            weight_loss = enc_loss + dec_loss
         road_loss = subgraph['road']['losses']['loss']
 
-        subgraph['segmentation']['losses']['total_loss'] = \
-            segmentation_loss + detection_loss + road_loss + weight_loss
+        # compute total loss
+        if meta_hypes['loss_build']['weighted']:
+            w = meta_hypes['loss_build']['weights']
+            # use weights
+            total_loss = segmentation_loss*w[0] + \
+                detection_loss*w[1] + road_loss*w[2] + weight_loss
+        else:
+            total_loss = segmentation_loss + detection_loss + road_loss \
+                + weight_loss
 
-        if not meta_hypes['loss_build']['rwdecay']:
-            subgraph['detection']['losses']['total_loss'] = \
-                detection_loss + weight_loss
-
+        # Build train_ops using the new losses
+        subgraph['segmentation']['losses']['total_loss'] = total_loss
         for model in meta_hypes['models']:
             hypes = subhypes[model]
             modules = submodules[model]
@@ -422,16 +405,6 @@ def _recombine_3_losses(meta_hypes, subgraph, subhypes, submodules):
             lr = subgraph[model]['learning_rate']
             subgraph[model]['train_op'] = optimizer.training(hypes, losses,
                                                              gs, lr)
-        if meta_hypes['loss_build']['reAdam']:
-            subgraph['road']['losses']['total_loss'] = \
-                segmentation_loss + weight_loss
-            lr = subgraph['segmentation']['learning_rate']
-            subgraph['road']['learning_rate'] = lr
-            gs = subgraph['segmentation']['global_step']
-            optimizer = submodules['segmentation']['solver']
-            opt = subhypes['segmentation']['opt']
-            subgraph['road']['train_op'] = optimizer.training(hypes, losses,
-                                                              gs, lr, opt=opt)
 
 
 def load_united_model(logdir):

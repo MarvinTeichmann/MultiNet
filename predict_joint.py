@@ -1,7 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""Trains, evaluates and saves the TensorDetect model."""
+"""
+Runs MultiNet on a whole bunch of input images.
+
+
+"""
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -204,7 +208,7 @@ def run_eval(load_out, output_folder, data_file):
             subhypes['detection'], [overlay_image], pred_confidences,
             pred_boxes_new, show_removed=False,
             use_stitching=True, rnn_len=subhypes['detection']['rnn_len'],
-            min_conf=0.5, tau=0.4)
+            min_conf=0.50, tau=subhypes['detection']['tau'])
 
         # Draw road classification
         highway = (np.argmax(output[0][0]) == 0)
