@@ -21,7 +21,7 @@ The code requires [Tensorflow 1.0](https://www.tensorflow.org/install/) as well 
 * scipy
 * runcython
 
-Those modules can be installed using: `pip install numpy scipy pillow matplotlib` or `pip install -r requirements.txt`.
+Those modules can be installed using: `pip install numpy scipy pillow matplotlib runcython` or `pip install -r requirements.txt`.
 
 
 ## Setup
