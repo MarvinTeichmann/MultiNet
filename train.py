@@ -51,7 +51,7 @@ flags.DEFINE_string('project', None,
 flags.DEFINE_string('logdir', None,
                     'Append a name Tag to run.')
 
-flags.DEFINE_string('hypes', 'hypes/multinet2.json',
+flags.DEFINE_string('hypes', None,
                     'File storing model parameters.')
 
 tf.app.flags.DEFINE_boolean(
@@ -187,8 +187,8 @@ def run_united_training(meta_hypes, subhypes, submodules, subgraph, tv_sess,
     py_smoothers = {}
     dict_smoothers = {}
     for model in models:
-        py_smoothers[model] = train.MedianSmoother(40)
-        dict_smoothers[model] = train.MedianSmoother(40)
+        py_smoothers[model] = train.MedianSmoother(5)
+        dict_smoothers[model] = train.ExpoSmoother(0.95)
 
     n = 0
 
@@ -228,7 +228,6 @@ def run_united_training(meta_hypes, subhypes, submodules, subgraph, tv_sess,
 
         sess.run([subgraph[model]['train_op']], feed_dict=feed_dict)
 
-
         # Write the summaries and print an overview fairly often.
         if step % display_iter == 0:
             # Print status to stdout.
@@ -260,6 +259,11 @@ def run_united_training(meta_hypes, subhypes, submodules, subgraph, tv_sess,
 
                 train._print_eval_dict(eval_names[model], smoothed_results,
                                        prefix='(smooth)')
+
+            output = sess.run(subgraph['debug_ops'].values())
+
+            for name, res in zip(subgraph['debug_ops'].keys(), output):
+                logging.info("{} : {}".format(name, res))
 
             if step % write_iter == 0:
                 # write values to summary
@@ -352,9 +356,12 @@ def run_united_training(meta_hypes, subhypes, submodules, subgraph, tv_sess,
 def _recombine_2_losses(meta_hypes, subgraph, subhypes, submodules):
     if meta_hypes['loss_build']['recombine']:
         # Computing weight loss
-        weight_loss = subgraph['segmentation']['losses']['weight_loss']
         segmentation_loss = subgraph['segmentation']['losses']['xentropy']
         detection_loss = subgraph['detection']['losses']['loss']
+
+        reg_loss_col = tf.GraphKeys.REGULARIZATION_LOSSES
+        weight_loss = tf.add_n(tf.get_collection(reg_loss_col),
+                               name='reg_loss')
 
         if meta_hypes['loss_build']['weighted']:
             w = meta_hypes['loss_build']['weights']
@@ -379,10 +386,14 @@ def _recombine_2_losses(meta_hypes, subgraph, subhypes, submodules):
 def _recombine_3_losses(meta_hypes, subgraph, subhypes, submodules):
     if meta_hypes['loss_build']['recombine']:
         # Read all losses
-        weight_loss = subgraph['segmentation']['losses']['weight_loss']
         segmentation_loss = subgraph['segmentation']['losses']['xentropy']
         detection_loss = subgraph['detection']['losses']['loss']
         road_loss = subgraph['road']['losses']['loss']
+
+        reg_loss_col = tf.GraphKeys.REGULARIZATION_LOSSES
+
+        weight_loss = tf.add_n(tf.get_collection(reg_loss_col),
+                               name='reg_loss')
 
         # compute total loss
         if meta_hypes['loss_build']['weighted']:
@@ -413,10 +424,12 @@ def load_united_model(logdir):
     submodules = {}
     subqueues = {}
 
+    subgraph['debug_ops'] = {}
+
     first_iter = True
 
     meta_hypes = utils.load_hypes_from_logdir(logdir, subdir="")
-    for model in meta_hypes['models']:
+    for model in meta_hypes['model_list']:
         subhypes[model] = utils.load_hypes_from_logdir(logdir, subdir=model)
         hypes = subhypes[model]
         hypes['dirs']['output_dir'] = meta_hypes['dirs']['output_dir']
@@ -440,17 +453,19 @@ def load_united_model(logdir):
 
         first_iter = False
 
-    if len(meta_hypes['models']) == 2:
+    if len(meta_hypes['model_list']) == 2:
         _recombine_2_losses(meta_hypes, subgraph, subhypes, submodules)
     else:
         _recombine_3_losses(meta_hypes, subgraph, subhypes, submodules)
+
+    hypes = subhypes[meta_hypes['model_list'][0]]
 
     tv_sess = core.start_tv_session(hypes)
     sess = tv_sess['sess']
     saver = tv_sess['saver']
 
     cur_step = core.load_weights(logdir, sess, saver)
-    for model in meta_hypes['models']:
+    for model in meta_hypes['model_list']:
         hypes = subhypes[model]
         modules = submodules[model]
         optimizer = modules['solver']
@@ -484,10 +499,12 @@ def build_united_model(meta_hypes):
     submodules = {}
     subqueues = {}
 
+    subgraph['debug_ops'] = {}
+
     base_path = meta_hypes['dirs']['base_path']
     first_iter = True
 
-    for model in meta_hypes['models']:
+    for model in meta_hypes['model_list']:
         subhypes_file = os.path.join(base_path, meta_hypes['models'][model])
         with open(subhypes_file, 'r') as f:
             logging.info("f: %s", f)
@@ -522,9 +539,11 @@ def build_united_model(meta_hypes):
     else:
         _recombine_3_losses(meta_hypes, subgraph, subhypes, submodules)
 
+    hypes = subhypes[meta_hypes['model_list'][0]]
+
     tv_sess = core.start_tv_session(hypes)
     sess = tv_sess['sess']
-    for model in meta_hypes['models']:
+    for model in meta_hypes['model_list']:
         hypes = subhypes[model]
         modules = submodules[model]
         optimizer = modules['solver']
@@ -564,29 +583,31 @@ def main(_):
         os.environ['TV_DIR_RUNS'] = os.path.join(os.environ['TV_DIR_RUNS'],
                                                  'MultiNet')
 
-    if not load_weights:
-        utils.set_dirs(hypes, tf.app.flags.FLAGS.hypes)
-        utils._add_paths_to_sys(hypes)
+    with tf.Session() as sess:
 
-        # Build united Model
-        subhypes, submodules, subgraph, tv_sess = build_united_model(hypes)
-        start_step = 0
-    else:
-        logdir = tf.app.flags.FLAGS.logdir
-        logging_file = os.path.join(logdir, "output.log")
-        utils.create_filewrite_handler(logging_file, mode='a')
-        hypes, subhypes, submodules, subgraph, tv_sess, start_step = \
-            load_united_model(logdir)
-        if start_step is None:
+        if not load_weights:
+            utils.set_dirs(hypes, tf.app.flags.FLAGS.hypes)
+            utils._add_paths_to_sys(hypes)
+
+            # Build united Model
+            subhypes, submodules, subgraph, tv_sess = build_united_model(hypes)
             start_step = 0
+        else:
+            logdir = tf.app.flags.FLAGS.logdir
+            logging_file = os.path.join(logdir, "output.log")
+            utils.create_filewrite_handler(logging_file, mode='a')
+            hypes, subhypes, submodules, subgraph, tv_sess, start_step = \
+                load_united_model(logdir)
+            if start_step is None:
+                start_step = 0
 
-    # Run united training
-    run_united_training(hypes, subhypes, submodules, subgraph,
-                        tv_sess, start_step=start_step)
+        # Run united training
+        run_united_training(hypes, subhypes, submodules, subgraph,
+                            tv_sess, start_step=start_step)
 
-    # stopping input Threads
-    tv_sess['coord'].request_stop()
-    tv_sess['coord'].join(tv_sess['threads'])
+        # stopping input Threads
+        tv_sess['coord'].request_stop()
+        tv_sess['coord'].join(tv_sess['threads'])
 
 
 if __name__ == '__main__':

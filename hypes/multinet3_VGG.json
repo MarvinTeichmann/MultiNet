@@ -1,0 +1,36 @@
+{
+    "models": {
+        "segmentation" : "../submodules/KittiSeg/hypes/KittiVGG.json",
+        "detection" : "../submodules/KittiBox/hypes/kittiBox.json",
+        "road" : "../submodules/KittiClass/hypes/KittiClass_VGG.json"
+    },
+
+    "model_list": ["segmentation", "detection", "road"],
+
+    "path": ["../incl", "../submodules/KittiSeg/incl", "../submodules/KittiBox/incl/", "../submodules/KittiClass/incl/"],
+
+    "logging": {
+        "display_iter": 50,
+        "eval_iter": 500,
+        "write_iter": 500,
+        "save_iter": 2000,
+        "image_iter": 600000
+    },
+
+    "selection": {
+        "random": false,
+        "use_weights": true,
+        "weights": [1, 0, 0]
+    },
+
+    "loss_build": {
+        "recombine": true,
+        "weighted": false,
+        "weights": [0.7, 2, 0.7]
+    },
+
+    "solver": {
+        "max_steps": 80000,
+        "batch_size": 1
+    }
+}
