@@ -1,6 +1,6 @@
 {
     "models": {
-        "segmentation" : "../submodules/KittiSeg/hypes/KittiVGG.json",
+        "segmentation" : "../submodules/KittiSeg/hypes/KittiSeg_VGG.json",
         "detection" : "../submodules/KittiBox/hypes/kittiBox.json",
         "road" : "../submodules/KittiClass/hypes/KittiClass_VGG.json"
     },

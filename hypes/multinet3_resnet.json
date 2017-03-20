@@ -1,8 +1,8 @@
 {
     "models": {
-        "segmentation" : "../submodules/KittiSeg/hypes/KittiRes.json",
-        "detection" : "../submodules/KittiBox/hypes/kittiBoxRes.json",
-        "road" : "../submodules/KittiClass/hypes/KittiClass_resnet.json"
+        "segmentation" : "../submodules/KittiSeg/hypes/KittiSeg_ResNet.json",
+        "detection" : "../submodules/KittiBox/hypes/kittiBox_ResNet.json",
+        "road" : "../submodules/KittiClass/hypes/KittiClass_ResNet.json"
     },
 
     "model_list": ["segmentation", "detection", "road"],

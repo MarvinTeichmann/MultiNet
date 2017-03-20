@@ -88,6 +88,9 @@ def eval_runtime(sess, subhypes, image_pl, eval_list, data_file):
     image = scp.misc.imread(image_file)
     image = process_image(subhypes, image)
     feed = {image_pl: image}
+    sess.run(eval_list, feed_dict=feed)
+    sess.run(eval_list, feed_dict=feed)
+    sess.run(eval_list, feed_dict=feed)
     for i in xrange(100):
         _ = sess.run(eval_list, feed_dict=feed)
     start_time = time.time()
@@ -263,6 +266,7 @@ def load_united_model(logdir):
 
     image_pl = tf.placeholder(tf.float32)
     image = tf.expand_dims(image_pl, 0)
+    image.set_shape([1, 384, 1248, 3])
     decoded_logits = {}
     for model in meta_hypes['models']:
         hypes = subhypes[model]
