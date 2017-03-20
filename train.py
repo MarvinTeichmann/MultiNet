@@ -428,7 +428,8 @@ def load_united_model(logdir):
 
     first_iter = True
 
-    meta_hypes = utils.load_hypes_from_logdir(logdir, subdir="")
+    meta_hypes = utils.load_hypes_from_logdir(logdir, subdir="",
+                                              base_path='hypes')
     for model in meta_hypes['model_list']:
         subhypes[model] = utils.load_hypes_from_logdir(logdir, subdir=model)
         hypes = subhypes[model]
