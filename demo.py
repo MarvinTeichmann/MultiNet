@@ -85,6 +85,10 @@ def maybe_download_and_extract(runs_dir):
         # weights are downloaded. Nothing to do
         return
 
+    if not os.path.exists(runs_dir):
+        os.makedirs(runs_dir)
+        # weights are downloaded. Nothing to do
+
     import zipfile
     download_name = tv_utils.download(weights_url, runs_dir)
 
