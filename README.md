@@ -20,8 +20,9 @@ The code requires [Tensorflow 1.0](https://www.tensorflow.org/install/) as well 
 * Pillow
 * scipy
 * runcython
+* commentjson
 
-Those modules can be installed using: `pip install numpy scipy pillow matplotlib runcython` or `pip install -r requirements.txt`.
+Those modules can be installed using: `pip install numpy scipy pillow matplotlib runcython commentjson` or `pip install -r requirements.txt`.
 
 
 ## Setup
@@ -49,6 +50,13 @@ Run: `python train.py --hypes hypes/multinet2.json` to train a multinet2
 If you like to understand the code, I would recommend looking at [demo.py](demo.py) first. I have documented each step as thoroughly as possible in this file. 
 
 Only training of MultiNet3 (joint detection and segmentation) is supported out of the box. The data to train the classification model is not public an those cannot be used to train the full MultiNet3 (detection, segmentation and classification). The full code is given here, so you can still train MultiNet3 if you have your own data.
+
+##### To update MultiNet do:
+
+1. Pull all patches: `git pull`
+2. Update all submodules: `git submodule update --init --recursive`
+
+If you forget the second step you might end up with an inconstant repository state. You will already have the new code for MultiNet but run it old submodule versions code. This can work, but I do not run any tests to verify this.
 
 
 ### Manage Data Storage
