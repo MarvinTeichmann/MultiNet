@@ -435,6 +435,7 @@ def load_united_model(logdir):
         hypes = subhypes[model]
         hypes['dirs']['output_dir'] = meta_hypes['dirs']['output_dir']
         hypes['dirs']['image_dir'] = meta_hypes['dirs']['image_dir']
+        hypes['dirs']['data_dir'] = meta_hypes['dirs']['data_dir']
         submodules[model] = utils.load_modules_from_logdir(logdir,
                                                            dirname=model,
                                                            postfix=model)
@@ -514,10 +515,10 @@ def build_united_model(meta_hypes):
         hypes = subhypes[model]
         utils.set_dirs(hypes, subhypes_file)
         hypes['dirs']['output_dir'] = meta_hypes['dirs']['output_dir']
+        hypes['dirs']['data_dir'] = meta_hypes['dirs']['data_dir']
         train.initialize_training_folder(hypes, files_dir=model,
                                          logging=first_iter)
         meta_hypes['dirs']['image_dir'] = hypes['dirs']['image_dir']
-        train.maybe_download_and_extract(hypes)
         submodules[model] = utils.load_modules_from_hypes(
             hypes, postfix="_%s" % model)
         modules = submodules[model]
