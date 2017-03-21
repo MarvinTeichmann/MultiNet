@@ -1,7 +1,7 @@
 {
     "models": {
         "segmentation" : "../submodules/KittiSeg/hypes/KittiSeg_VGG.json",
-        "detection" : "../submodules/KittiBox/hypes/kittiBox.json",
+        "detection" : "../submodules/KittiBox/hypes/kittiBox_VGG.json",
         "road" : "../submodules/KittiClass/hypes/KittiClass_VGG.json"
     },
 
@@ -30,7 +30,7 @@
     },
 
     "solver": {
-        "max_steps": 80000,
+        "max_steps": 100000,
         "batch_size": 1
     }
 }
