@@ -363,7 +363,7 @@ def main(_):
         min_conf=0.50, tau=subhypes['detection']['tau'])
 
     # Draw road classification
-    highway = (np.argmax(output[0][0]) == 0)
+    highway = (np.argmax(road_softmax) == 1)
     new_img = road_draw(new_img, highway)
 
     logging.info("")

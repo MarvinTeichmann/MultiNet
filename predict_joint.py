@@ -214,7 +214,7 @@ def run_eval(load_out, output_folder, data_file):
             min_conf=0.50, tau=subhypes['detection']['tau'])
 
         # Draw road classification
-        highway = (np.argmax(output[0][0]) == 0)
+        highway = (np.argmax(road_softmax) == 1)
         new_img = road_draw(new_img, highway)
 
         # Save image file
@@ -252,7 +252,8 @@ def load_united_model(logdir):
 
     first_iter = True
 
-    meta_hypes = utils.load_hypes_from_logdir(logdir, subdir="")
+    meta_hypes = utils.load_hypes_from_logdir(logdir, subdir="",
+                                              base_path='hypes')
     for model in meta_hypes['models']:
         subhypes[model] = utils.load_hypes_from_logdir(logdir, subdir=model)
         hypes = subhypes[model]
@@ -268,6 +269,10 @@ def load_united_model(logdir):
     image = tf.expand_dims(image_pl, 0)
     image.set_shape([1, 384, 1248, 3])
     decoded_logits = {}
+
+    hypes = subhypes['segmentation']
+    modules = submodules['segmentation']
+    logits = modules['arch'].inference(hypes, image, train=False)
     for model in meta_hypes['models']:
         hypes = subhypes[model]
         modules = submodules[model]
@@ -277,9 +282,6 @@ def load_united_model(logdir):
             reuse = {True: False, False: True}[first_iter]
 
             scope = tf.get_variable_scope()
-
-            with tf.variable_scope(scope, reuse=reuse):
-                logits = modules['arch'].inference(hypes, image, train=False)
 
             decoded_logits[model] = modules['objective'].decoder(hypes, logits,
                                                                  train=False)
