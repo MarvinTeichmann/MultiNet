@@ -466,6 +466,22 @@ def load_united_model(logdir):
     sess = tv_sess['sess']
     saver = tv_sess['saver']
 
+    f = open("var_list.txt", 'r')
+    var_name_list = json.load(f)
+
+    global_vars = tf.global_variables()
+    var_list = [var for var in global_vars if var.name in var_name_list]
+
+    saver2 = tf.train.Saver(var_list)
+
+    cur_step = core.load_weights(logdir, sess, saver2)
+
+    checkpoint_path = os.path.join(meta_hypes['dirs']['output_dir'],
+                                   'model.ckpt')
+    tv_sess['saver'].save(sess, checkpoint_path, global_step=cur_step)
+    import ipdb
+    ipdb.set_trace()
+
     cur_step = core.load_weights(logdir, sess, saver)
     for model in meta_hypes['model_list']:
         hypes = subhypes[model]
