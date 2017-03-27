@@ -73,9 +73,9 @@ flags.DEFINE_string('output', None,
                     'Image to apply KittiSeg.')
 
 
-default_run = 'MultiNet_pretrained'
+default_run = 'MultiNet_ICCV'
 weights_url = ("ftp://mi.eng.cam.ac.uk/"
-               "pub/mttt2/models/MultiNet_pretrained.zip")
+               "pub/mttt2/models/MultiNet_ICCV.zip")
 
 
 def maybe_download_and_extract(runs_dir):
@@ -257,6 +257,7 @@ def load_united_model(logdir):
 
     image_pl = tf.placeholder(tf.float32)
     image = tf.expand_dims(image_pl, 0)
+    image.set_shape([1, 384, 1248, 3])
     decoded_logits = {}
     for model in meta_hypes['models']:
         hypes = subhypes[model]
