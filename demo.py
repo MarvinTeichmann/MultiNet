@@ -395,7 +395,7 @@ def main(_):
 
     # Save output image file
     if FLAGS.output is None:
-        output_base_name = input
+        output_base_name = FLAGS.input
         out_image_name = output_base_name.split('.')[0] + '_out.png'
     else:
         out_image_name = FLAGS.output
