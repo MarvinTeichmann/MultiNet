@@ -407,6 +407,17 @@ def main(_):
     logging.info("Output image has been saved to: {}".format(
         os.path.realpath(out_image_name)))
 
+    logging.info("")
+    logging.warning("Do NOT use this Code to evaluate multiple images.")
+
+    logging.warning("Demo.py is **very slow** and designed "
+                    "to be a tutorial to show how the MultiNet works.")
+    logging.warning("")
+    logging.warning("Please see this comment, if you like to apply demo.py to"
+                    "multiple images see:")
+    logging.warning("https://github.com/MarvinTeichmann/KittiBox/"
+                    "issues/15#issuecomment-301800058")
+
     exit(0)
 
 if __name__ == '__main__':
