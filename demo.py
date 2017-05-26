@@ -307,6 +307,8 @@ def main(_):
         logging.info("Using weights found in {}".format(FLAGS.logdir))
         logdir = FLAGS.logdir
 
+    logging.info("Loading model from: {}".format(logdir))
+
     # Loads the model from rundir
     load_out = load_united_model(logdir)
 
@@ -414,7 +416,7 @@ def main(_):
                     "to be a tutorial to show how the MultiNet works.")
     logging.warning("")
     logging.warning("Please see this comment, if you like to apply demo.py to"
-                    "multiple images see:")
+                    " multiple images see:")
     logging.warning("https://github.com/MarvinTeichmann/KittiBox/"
                     "issues/15#issuecomment-301800058")
 
