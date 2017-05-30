@@ -1,19 +1,19 @@
 # MultiNet
 
-MultiNet is able to jointly perform road segmentation, car detection and street classification. The model archives real-time speed and [state-of-the-art](http://www.cvlibs.net/datasets/kitti/eval_road_detail.php?result=ca96b8137feb7a636f3d774c408b1243d8a6e0df)  performance in segmentation. Check out our [paper](https://arxiv.org/abs/1612.07695) for a detailed model description.
+MultiNet is able to jointly perform road segmentation, car detection and street classification. The model achieves real-time speed and [state-of-the-art](http://www.cvlibs.net/datasets/kitti/eval_road_detail.php?result=ca96b8137feb7a636f3d774c408b1243d8a6e0df)  performance in segmentation. Check out our [paper](https://arxiv.org/abs/1612.07695) for a detailed model description.
 
 <img src="data/images/um_000005.png" width="288"> <img src="data/images/umm_000058.png" width="288"> <img src="data/images/umm_000059.png" width="288"> 
 
 <img src="data/images/uu_000002.png" width="288"> <img src="data/images/um_000005.png" width="288"> <img src="data/images/uu_000004.png" width="288"> 
 
-MultiNet is optimized to perform well at a real-time speed. Its ingredient [KittiSeg](https://github.com/MarvinTeichmann/KittiSeg#kittiseg) sets a new state-of-the art in road segmentation and [KittiBox](https://github.com/MarvinTeichmann/KittiBox#kittibox) improves over the baseline Faster-RCNN in both inference speed and detection performance.
+MultiNet is optimized to perform well at a real-time speed. It has two components: [KittiSeg](https://github.com/MarvinTeichmann/KittiSeg#kittiseg), which sets a new state-of-the art in road segmentation; and [KittiBox](https://github.com/MarvinTeichmann/KittiBox#kittibox), which improves over the baseline Faster-RCNN in both inference speed and detection performance.
 
 
-The model is designed as an encoder-decoder architecture. It utilizes one VGG encoder and several independend decoders for each task. This repository contains generic code allowing to combine several tensorflow models in one network. The code for the indevidual tasks is provided by the [KittiSeg](https://github.com/MarvinTeichmann/KittiSeg#kittiseg), [KittiBox](https://github.com/MarvinTeichmann/KittiBox#kittibox) and [KittiClass](https://github.com/MarvinTeichmann/KittiClass) repository. Those repositories are utilized as [submodule](https://github.com/MarvinTeichmann/MultiNet/tree/master/submodules) in this project. This project is build to be compatible with the [TensorVision](http://tensorvision.readthedocs.io/en/master/user/tutorial.html#workflow) back end which allows to organize experiments in a very clean way. 
+The model is designed as an encoder-decoder architecture. It utilizes one VGG encoder and several independent decoders for each task. This repository contains generic code that combines several tensorflow models in one network. The code for the individual tasks is provided by the [KittiSeg](https://github.com/MarvinTeichmann/KittiSeg#kittiseg), [KittiBox](https://github.com/MarvinTeichmann/KittiBox#kittibox), and [KittiClass](https://github.com/MarvinTeichmann/KittiClass) repositories. These repositories are utilized as [submodules](https://github.com/MarvinTeichmann/MultiNet/tree/master/submodules) in this project. This project is built to be compatible with the [TensorVision](http://tensorvision.readthedocs.io/en/master/user/tutorial.html#workflow) back end, which allows for organizing experiments in a very clean way. 
 
 ## Requirements
 
-The code requires [Tensorflow 1.0](https://www.tensorflow.org/install/) as well as the following python libraries: 
+The code requires [Python 2.7](https://www.python.org/download/releases/2.7/), [Tensorflow 1.0](https://www.tensorflow.org/install/), as well as the following python libraries: 
 
 * matplotlib
 * numpy
@@ -29,13 +29,13 @@ Those modules can be installed using: `pip install numpy scipy pillow matplotlib
 
 1. Clone this repository: `https://github.com/MarvinTeichmann/MultiNet.git`
 2. Initialize all submodules: `git submodule update --init --recursive`
-3. 'cd submodules/KittiBox/submodules/utils/ && make to build cython code
+3. `cd submodules/KittiBox/submodules/utils/ && make` to build cython code
 4. [Optional] Download Kitti Road Data:
     1. Retrieve kitti data url here: [http://www.cvlibs.net/download.php?file=data_road.zip](http://www.cvlibs.net/download.php?file=data_road.zip)
     2. Call `python download_data.py --kitti_url URL_YOU_RETRIEVED`
 5. [Optional] Run `cd submodules/KittiBox/submodules/KittiObjective2/ && make` to build the Kitti evaluation code (see [submodules/KittiBox/submodules/KittiObjective2/README.md](https://github.com/MarvinTeichmann/KittiBox/blob/1073ab1ef6c53adc78c5340f42ce3468797d50b4/submodules/KittiObjective2/README.md) for more information)
     
-Running the model using `demo.py` only requires you to perform step 1-3. Step 4 and 5 is only required if you want to train your own model using `train.py`. Also note, that I recommend using `download_data.py` instead of downloading the data yourself. The script will also extract and prepare the data. See Section [Manage data storage](README.md#manage-data-storage) if you like to control where the data is stored.
+Running the model using `demo.py` only requires you to perform step 1-3. Step 4 and 5 is only required if you want to train your own model using `train.py`. Note that I recommend using `download_data.py` instead of downloading the data yourself. The script will also extract and prepare the data. See Section [Manage data storage](README.md#manage-data-storage) if you like to control where the data is stored.
 
 ##### To update MultiNet do:
 
@@ -67,7 +67,7 @@ Include  `export TV_DIR_DATA="/MY/LARGE/HDD/DATA"` in your `.profile` and the al
 
 ### Modifying Model & Train on your own data
 
-The model is controlled by the file `hypes/multinet3.json`. This file points the code to the implementation of the submodels. The MultiNet code then loads all models provided and integrades the decoders into one neuronal network. To train on your own data, it should be enough to modify the hype files of the submodels. A good start will be the [KittiSeg](https://github.com/MarvinTeichmann/KittiSeg#kittiseg), which is very well documented.
+The model is controlled by the file `hypes/multinet3.json`. This file points the code to the implementation of the submodels. The MultiNet code then loads all models provided and integrates the decoders into one neural network. To train on your own data, it should be enough to modify the hype files of the submodels. A good start will be the [KittiSeg](https://github.com/MarvinTeichmann/KittiSeg#kittiseg) model, which is very well documented.
 
 ```
     "models": {
@@ -79,7 +79,7 @@ The model is controlled by the file `hypes/multinet3.json`. This file points the
 
 ### RUNDIR and Experiment Organization
 
-MultiNet helps you to organize large number of experiments. To do so the output of each run is stored in its own rundir. Each rundir contains:
+MultiNet helps you to organize a large number of experiments. To do so, the output of each run is stored in its own rundir. Each rundir contains:
 
 * `output.log` a copy of the training output which was printed to your screen
 * `tensorflow events` tensorboard can be run in rundir
